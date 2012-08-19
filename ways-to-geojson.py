@@ -6,32 +6,7 @@ import xml.etree.ElementTree as xml
 import json
 import re
 import logging
-
-def write_json(data, path, precision=6, indent=False):
-
-    logging.debug("write data to %s" % path)
-
-    kwargs = {}
-
-    if indent:
-        kwargs['indent'] = 2
-
-    float_pat = re.compile(r'^-?\d+\.\d+(e-?\d+)?$')
-
-    fh = open(path, 'w')
-
-    encoder = json.JSONEncoder(**kwargs)
-    encoded = encoder.iterencode(data)
-    
-    format = '%.' + str(precision) + 'f'
-    
-    for token in encoded:
-        if float_pat.match(token):
-            fh.write(format % float(token))
-        else:
-            fh.write(token)
-
-    fh.close()
+import liljson
 
 def nodes_for_way(id):
 
@@ -65,7 +40,7 @@ def coords_for_node(id):
         float(attrs['lat'])
         )
 
-def ways_to_geojson(ids):
+def ways_to_geojson(ids, precision=2):
 
     features = []
 
@@ -169,13 +144,10 @@ if __name__ == '__main__':
         logging.error("missing way IDs")
         sys.exit()
 
-    if options.path:
-        path = options.path
-    else:
-        path = "-".join(ids) + ".json"
+    output = options.path and open(options.path, 'w') or sys.stdout
 
-    data = ways_to_geojson(ids)
+    data = ways_to_geojson(ids, options.precision)
 
-    write_json(data, path, options.precision, options.indent)
+    liljson.write_liljson(data, output, options.precision)
 
     logging.info("done")
