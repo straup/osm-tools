@@ -5,8 +5,6 @@ import urllib
 import xml.etree.ElementTree as xml
 import json
 import re
-
-import pprint
 import logging
 
 def write_json(data, path, precision=6, indent=False):
@@ -76,8 +74,37 @@ def ways_to_geojson(ids):
         nodes = nodes_for_way(id)
         coords = []
 
+        swlat = None
+        swlon = None
+        nelat = None
+        nelon = None
+
         for n in nodes:
-            coords.append(coords_for_node(n))
+
+            pt = coords_for_node(n)
+            coords.append(pt)
+
+            if swlat:
+                swlat = min(swlat, pt[1])
+            else:
+                swlat = pt[1]                
+
+            if swlon:
+                swlon = min(swlat, pt[0])
+            else:
+                swlon = pt[0]   
+
+            if nelat:
+                nelat = max(nelat, pt[1])
+            else:
+                nelat = pt[1]
+
+            if nelon:
+                nelon = max(nelon, pt[0])
+            else:
+                nelon = pt[0]
+
+        bbox = [ swlon, swlat, nelon, nelat ]
 
         # TO DO: check to see if this a closed set of
         # coordinates or not...
@@ -95,6 +122,7 @@ def ways_to_geojson(ids):
     
         feature = {
             'type': 'Feature',
+            'bbox': bbox,
             'properties': properties,
             'geometry' : geom
             }
