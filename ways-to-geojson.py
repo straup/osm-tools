@@ -84,7 +84,14 @@ def ways_to_geojson(ids, precision=2):
         # TO DO: check to see if this a closed set of
         # coordinates or not...
 
-        type = 'Polygon'
+        first = coords[0]
+        last = coords[-1]
+
+        if first[0] == last[0] and first[1] == last[1]:
+            type = 'Polygon'
+            coords = [ coords ]
+        else:
+            type = 'LineString'
 
         properties = {
             'id': id
@@ -92,7 +99,7 @@ def ways_to_geojson(ids, precision=2):
 
         geom = {
             'type': type,
-            'coordinates': [ coords ]
+            'coordinates': coords
             }
     
         feature = {
@@ -148,6 +155,11 @@ if __name__ == '__main__':
 
     data = ways_to_geojson(ids, options.precision)
 
-    liljson.write_liljson(data, output, options.precision)
+    args = {}
+
+    if options.indent:
+        args['indent'] = options.indent
+
+    json.dump(data, output, indent=2)
 
     logging.info("done")
